@@ -38,8 +38,8 @@ export default function Contact() {
               </CardHeader>
               <CardContent>
                 <Button asChild className="w-full">
-                  <a href="mailto:aldobixheku19@gmail.com">
-                    aldobixheku19@gmail.com
+                  <a href="mailto:ndysho6@gmail.com">
+                    ndysho6@gmail.com
                   </a>
                 </Button>
               </CardContent>
@@ -60,8 +60,8 @@ export default function Contact() {
               </CardHeader>
               <CardContent>
                 <Button asChild variant="outline" className="w-full">
-                  <a href="https://instagram.com/ndrysho" target="_blank" rel="noopener noreferrer">
-                    @ndrysho
+                  <a href="https://www.instagram.com/ndrysho_portal/?utm_source=qr&igsh=" target="_blank" rel="noopener noreferrer">
+                    @ndrysho_portal
                   </a>
                 </Button>
               </CardContent>
@@ -101,7 +101,7 @@ export default function Contact() {
               )}
             </p>
             <Button asChild>
-              <a href="mailto:aldobixheku19@gmail.com?subject=Job Posting Request">
+              <a href="mailto:ndysho6@gmail.com?subject=Job Posting Request">
                 {t('Postoni një Punë', 'Post a Job')}
               </a>
             </Button>

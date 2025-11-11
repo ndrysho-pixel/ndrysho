@@ -68,7 +68,7 @@ export const Footer = () => {
             <h3 className="font-semibold mb-4">{t('Na Ndiqni', 'Follow Us')}</h3>
             <div className="flex gap-4">
               <a
-                href="https://instagram.com/ndrysho"
+                href="https://www.instagram.com/ndrysho_portal?utm_source=qr&igsh="
                 target="_blank"
                 rel="noopener noreferrer"
                 className="text-muted-foreground hover:text-primary"
@@ -84,7 +84,7 @@ export const Footer = () => {
                 <Facebook className="h-5 w-5" />
               </a>
               <a
-                href="mailto:aldobixheku19@gmail.com"
+                href="mailto:ndysho6@gmail.com"
                 className="text-muted-foreground hover:text-primary"
               >
                 <Mail className="h-5 w-5" />
