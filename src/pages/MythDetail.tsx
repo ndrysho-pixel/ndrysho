@@ -5,12 +5,16 @@ import { useParams, useNavigate } from 'react-router-dom';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { Skeleton } from '@/components/ui/skeleton';
-import { ArrowLeft, CheckCircle2, XCircle } from 'lucide-react';
+import { ArrowLeft, CheckCircle2, XCircle, Eye } from 'lucide-react';
+import { useContentViews } from '@/hooks/useContentViews';
 
 export default function MythDetail() {
   const { id } = useParams();
   const { language, t } = useLanguage();
   const navigate = useNavigate();
+
+  // Track content views
+  useContentViews('myths', id);
 
   const { data: myth, isLoading } = useQuery({
     queryKey: ['myth', id],
@@ -24,6 +28,7 @@ export default function MythDetail() {
       if (error) throw error;
       return data;
     },
+    refetchInterval: 10000, // Refetch every 10 seconds for real-time updates
   });
 
   if (isLoading) {
@@ -74,9 +79,14 @@ export default function MythDetail() {
               )}
             </div>
             
-            <h1 className="text-4xl font-bold mb-6">
+            <h1 className="text-4xl font-bold mb-4">
               {language === 'sq' ? myth.claim_sq : myth.claim_en}
             </h1>
+            
+            <div className="flex items-center gap-2 text-muted-foreground">
+              <Eye className="h-4 w-4" />
+              <span>{myth.views || 0} {t('shikime', 'views')}</span>
+            </div>
           </div>
 
           <div className="prose prose-lg max-w-none">

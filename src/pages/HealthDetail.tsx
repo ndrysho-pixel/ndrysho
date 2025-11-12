@@ -4,13 +4,17 @@ import { supabase } from '@/integrations/supabase/client';
 import { useParams, useNavigate } from 'react-router-dom';
 import { Button } from '@/components/ui/button';
 import { Skeleton } from '@/components/ui/skeleton';
-import { ArrowLeft, Calendar } from 'lucide-react';
+import { ArrowLeft, Calendar, Eye } from 'lucide-react';
 import { format } from 'date-fns';
+import { useContentViews } from '@/hooks/useContentViews';
 
 export default function HealthDetail() {
   const { id } = useParams();
   const { language, t } = useLanguage();
   const navigate = useNavigate();
+
+  // Track content views
+  useContentViews('articles', id);
 
   const { data: article, isLoading } = useQuery({
     queryKey: ['article', id],
@@ -24,6 +28,7 @@ export default function HealthDetail() {
       if (error) throw error;
       return data;
     },
+    refetchInterval: 10000, // Refetch every 10 seconds for real-time updates
   });
 
   if (isLoading) {
@@ -64,11 +69,18 @@ export default function HealthDetail() {
             <h1 className="text-4xl font-bold mb-4">
               {language === 'sq' ? article.title_sq : article.title_en}
             </h1>
-            <div className="flex items-center gap-2 text-muted-foreground">
-              <Calendar className="h-4 w-4" />
-              <span>{format(new Date(article.published_at), 'dd MMMM yyyy')}</span>
+            <div className="flex items-center gap-4 text-muted-foreground flex-wrap">
+              <div className="flex items-center gap-2">
+                <Calendar className="h-4 w-4" />
+                <span>{format(new Date(article.published_at), 'dd MMMM yyyy')}</span>
+              </div>
               <span>•</span>
               <span>{language === 'sq' ? article.category_sq : article.category_en}</span>
+              <span>•</span>
+              <div className="flex items-center gap-2">
+                <Eye className="h-4 w-4" />
+                <span>{article.views || 0} {t('shikime', 'views')}</span>
+              </div>
             </div>
           </div>
 

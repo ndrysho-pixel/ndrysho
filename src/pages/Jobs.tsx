@@ -4,7 +4,7 @@ import { supabase } from '@/integrations/supabase/client';
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Skeleton } from '@/components/ui/skeleton';
-import { MapPin, Briefcase, ExternalLink } from 'lucide-react';
+import { MapPin, Briefcase, ExternalLink, Eye } from 'lucide-react';
 import { Link } from 'react-router-dom';
 import heroJobs from '@/assets/hero-jobs.jpg';
 
@@ -84,9 +84,15 @@ export default function Jobs() {
                     </div>
                   </CardHeader>
                   <CardContent>
-                    <div className="flex items-center gap-2 text-muted-foreground mb-3">
-                      <MapPin className="h-4 w-4" />
-                      <span>{language === 'sq' ? job.location_sq : job.location_en}</span>
+                    <div className="flex items-center gap-3 text-muted-foreground mb-3 flex-wrap">
+                      <div className="flex items-center gap-2">
+                        <MapPin className="h-4 w-4" />
+                        <span>{language === 'sq' ? job.location_sq : job.location_en}</span>
+                      </div>
+                      <div className="flex items-center gap-1">
+                        <Eye className="h-4 w-4" />
+                        <span>{job.views || 0} {t('shikime', 'views')}</span>
+                      </div>
                     </div>
                     <p className="text-sm line-clamp-3">
                       {language === 'sq' ? job.description_sq : job.description_en}

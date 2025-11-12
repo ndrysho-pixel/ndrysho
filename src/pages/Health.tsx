@@ -5,7 +5,7 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/com
 import { Skeleton } from '@/components/ui/skeleton';
 import { Link } from 'react-router-dom';
 import heroHealth from '@/assets/hero-health.jpg';
-import { Calendar } from 'lucide-react';
+import { Calendar, Eye } from 'lucide-react';
 import { format } from 'date-fns';
 
 export default function Health() {
@@ -79,9 +79,15 @@ export default function Health() {
                         {language === 'sq' ? article.title_sq : article.title_en}
                       </CardTitle>
                       <CardDescription>
-                        <div className="flex items-center gap-2 text-sm">
-                          <Calendar className="h-3 w-3" />
-                          {format(new Date(article.published_at), 'dd/MM/yyyy')}
+                        <div className="flex items-center gap-3 text-sm flex-wrap">
+                          <div className="flex items-center gap-2">
+                            <Calendar className="h-3 w-3" />
+                            {format(new Date(article.published_at), 'dd/MM/yyyy')}
+                          </div>
+                          <div className="flex items-center gap-1">
+                            <Eye className="h-3 w-3" />
+                            <span>{article.views || 0}</span>
+                          </div>
                         </div>
                       </CardDescription>
                     </CardHeader>

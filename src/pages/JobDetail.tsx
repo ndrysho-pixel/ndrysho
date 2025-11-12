@@ -4,12 +4,16 @@ import { supabase } from '@/integrations/supabase/client';
 import { useParams, useNavigate } from 'react-router-dom';
 import { Button } from '@/components/ui/button';
 import { Skeleton } from '@/components/ui/skeleton';
-import { MapPin, Briefcase, ExternalLink, ArrowLeft } from 'lucide-react';
+import { MapPin, Briefcase, ExternalLink, ArrowLeft, Eye } from 'lucide-react';
+import { useContentViews } from '@/hooks/useContentViews';
 
 export default function JobDetail() {
   const { id } = useParams();
   const { language, t } = useLanguage();
   const navigate = useNavigate();
+
+  // Track content views
+  useContentViews('jobs', id);
 
   const { data: job, isLoading } = useQuery({
     queryKey: ['job', id],
@@ -23,6 +27,7 @@ export default function JobDetail() {
       if (error) throw error;
       return data;
     },
+    refetchInterval: 10000, // Refetch every 10 seconds for real-time updates
   });
 
   if (isLoading) {
@@ -73,6 +78,10 @@ export default function JobDetail() {
                 <span className="text-lg">
                   {language === 'sq' ? job.location_sq : job.location_en}
                 </span>
+              </div>
+              <div className="flex items-center gap-2">
+                <Eye className="h-5 w-5" />
+                <span className="text-lg">{job.views || 0} {t('shikime', 'views')}</span>
               </div>
             </div>
           </div>

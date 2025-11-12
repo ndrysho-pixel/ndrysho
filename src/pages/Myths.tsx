@@ -5,7 +5,7 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/com
 import { Badge } from '@/components/ui/badge';
 import { Skeleton } from '@/components/ui/skeleton';
 import { Link } from 'react-router-dom';
-import { CheckCircle2, XCircle } from 'lucide-react';
+import { CheckCircle2, XCircle, Eye } from 'lucide-react';
 
 export default function Myths() {
   const { language, t } = useLanguage();
@@ -79,6 +79,10 @@ export default function Myths() {
                             {language === 'sq' ? myth.claim_sq : myth.claim_en}
                           </CardTitle>
                           <CardDescription className="mt-2">
+                            <div className="flex items-center gap-2 mb-2 text-sm">
+                              <Eye className="h-3 w-3" />
+                              <span>{myth.views || 0} {language === 'sq' ? 'shikime' : 'views'}</span>
+                            </div>
                             <p className="line-clamp-2">
                               {language === 'sq' ? myth.explanation_sq : myth.explanation_en}
                             </p>

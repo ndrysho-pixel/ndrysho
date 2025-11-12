@@ -7,12 +7,13 @@ import { supabase } from '@/integrations/supabase/client';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Skeleton } from '@/components/ui/skeleton';
 import { Alert, AlertDescription } from '@/components/ui/alert';
-import { Briefcase, Heart, HelpCircle, LogOut, FileText } from 'lucide-react';
+import { Briefcase, Heart, HelpCircle, LogOut, FileText, BarChart3 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import JobsManager from '@/components/admin/JobsManager';
 import ArticlesManager from '@/components/admin/ArticlesManager';
 import MythsManager from '@/components/admin/MythsManager';
 import AuditLogsViewer from '@/components/admin/AuditLogsViewer';
+import VisitorAnalytics from '@/components/admin/VisitorAnalytics';
 import { useToast } from '@/hooks/use-toast';
 
 export default function Admin() {
@@ -98,8 +99,12 @@ export default function Admin() {
           </Button>
         </div>
 
-        <Tabs defaultValue="jobs" className="space-y-6">
-          <TabsList className="grid w-full grid-cols-4">
+        <Tabs defaultValue="analytics" className="space-y-6">
+          <TabsList className="grid w-full grid-cols-5">
+            <TabsTrigger value="analytics" className="flex items-center gap-2">
+              <BarChart3 className="h-4 w-4" />
+              {t('Analitikë', 'Analytics')}
+            </TabsTrigger>
             <TabsTrigger value="jobs" className="flex items-center gap-2">
               <Briefcase className="h-4 w-4" />
               {t('Punë', 'Jobs')}
@@ -117,6 +122,10 @@ export default function Admin() {
               {t('Regjistri', 'Audit Log')}
             </TabsTrigger>
           </TabsList>
+
+          <TabsContent value="analytics">
+            <VisitorAnalytics />
+          </TabsContent>
 
           <TabsContent value="jobs">
             <JobsManager />
