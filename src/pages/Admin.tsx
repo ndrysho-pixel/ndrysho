@@ -14,6 +14,7 @@ import ArticlesManager from '@/components/admin/ArticlesManager';
 import MythsManager from '@/components/admin/MythsManager';
 import AuditLogsViewer from '@/components/admin/AuditLogsViewer';
 import VisitorAnalytics from '@/components/admin/VisitorAnalytics';
+import TrendingContent from '@/components/admin/TrendingContent';
 import { useToast } from '@/hooks/use-toast';
 
 export default function Admin() {
@@ -97,6 +98,10 @@ export default function Admin() {
             <LogOut className="h-4 w-4 mr-2" />
             {t('Dil', 'Logout')}
           </Button>
+        </div>
+
+        <div className="mb-6">
+          <TrendingContent />
         </div>
 
         <Tabs defaultValue="analytics" className="space-y-6">
