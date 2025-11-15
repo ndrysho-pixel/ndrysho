@@ -11,36 +11,65 @@ export interface EmailVerificationResult {
   warning?: string;
 }
 
+const sleep = (ms: number) => new Promise(resolve => setTimeout(resolve, ms));
+
 export const useEmailVerification = () => {
   const verifyEmail = async (email: string): Promise<EmailVerificationResult> => {
-    try {
-      const { data, error } = await supabase.functions.invoke<EmailVerificationResult>(
-        'verify-email',
-        {
-          body: { email: email.trim().toLowerCase() }
+    const maxRetries = 3;
+    const baseDelay = 1000; // 1 second
+
+    for (let attempt = 0; attempt <= maxRetries; attempt++) {
+      try {
+        const { data, error } = await supabase.functions.invoke<EmailVerificationResult>(
+          'verify-email',
+          {
+            body: { email: email.trim().toLowerCase() }
+          }
+        );
+
+        if (error) {
+          // If it's the last attempt, fail open
+          if (attempt === maxRetries) {
+            console.error('Email verification error after all retries:', error);
+            return {
+              valid: true,
+              email,
+              warning: 'Email verification service temporarily unavailable'
+            };
+          }
+          
+          // Otherwise, retry with exponential backoff
+          const delay = baseDelay * Math.pow(2, attempt);
+          console.warn(`Email verification attempt ${attempt + 1} failed, retrying in ${delay}ms...`);
+          await sleep(delay);
+          continue;
         }
-      );
 
-      if (error) {
-        console.error('Email verification error:', error);
-        // Fail open - allow the email if verification service fails
-        return {
-          valid: true,
-          email,
-          warning: 'Email verification service temporarily unavailable'
-        };
+        return data as EmailVerificationResult;
+      } catch (error) {
+        // If it's the last attempt, fail open
+        if (attempt === maxRetries) {
+          console.error('Email verification exception after all retries:', error);
+          return {
+            valid: true,
+            email,
+            warning: 'Email verification service temporarily unavailable'
+          };
+        }
+        
+        // Otherwise, retry with exponential backoff
+        const delay = baseDelay * Math.pow(2, attempt);
+        console.warn(`Email verification attempt ${attempt + 1} failed, retrying in ${delay}ms...`);
+        await sleep(delay);
       }
-
-      return data as EmailVerificationResult;
-    } catch (error) {
-      console.error('Email verification exception:', error);
-      // Fail open - allow the email if verification service fails
-      return {
-        valid: true,
-        email,
-        warning: 'Email verification service temporarily unavailable'
-      };
     }
+
+    // Fallback (should never reach here)
+    return {
+      valid: true,
+      email,
+      warning: 'Email verification service temporarily unavailable'
+    };
   };
 
   return { verifyEmail };
