@@ -7,6 +7,7 @@ import { Skeleton } from '@/components/ui/skeleton';
 import { ArrowLeft, Calendar, Eye } from 'lucide-react';
 import { format } from 'date-fns';
 import { useContentViews } from '@/hooks/useContentViews';
+import { AdUnit } from '@/components/AdUnit';
 
 export default function HealthDetail() {
   const { id } = useParams();
@@ -92,11 +93,17 @@ export default function HealthDetail() {
             />
           )}
 
+          {/* Ad Unit - Top of Article */}
+          <AdUnit adSlot="1234567890" adFormat="horizontal" />
+
           <div className="prose prose-lg max-w-none">
             <div className="whitespace-pre-wrap">
               {language === 'sq' ? article.content_sq : article.content_en}
             </div>
           </div>
+
+          {/* Ad Unit - Bottom of Article */}
+          <AdUnit adSlot="0987654321" adFormat="horizontal" />
         </article>
       </div>
     </div>
