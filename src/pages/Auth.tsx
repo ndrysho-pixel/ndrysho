@@ -9,16 +9,8 @@ import { supabase } from '@/integrations/supabase/client';
 import { useToast } from '@/hooks/use-toast';
 import { useAuth } from '@/hooks/useAuth';
 import { z } from 'zod';
-
-// Enhanced email validation with domain check
-const emailSchema = z.string()
-  .email()
-  .refine((email) => {
-    const domain = email.split('@')[1];
-    const validDomains = ['gmail.com', 'yahoo.com', 'outlook.com', 'hotmail.com', 'icloud.com'];
-    // Check if it has a valid TLD and not suspicious patterns
-    return domain && domain.includes('.') && !domain.includes('..');
-  }, { message: 'Please use a valid email from a recognized provider' });
+import { emailValidationSchema } from '@/lib/emailValidation';
+import { useEmailVerification } from '@/hooks/useEmailVerification';
 
 const passwordSchema = z.string().min(6);
 
@@ -27,6 +19,7 @@ export default function Auth() {
   const { toast } = useToast();
   const navigate = useNavigate();
   const { user, loading: authLoading } = useAuth();
+  const { verifyEmail } = useEmailVerification();
   const [loading, setLoading] = useState(false);
 
   useEffect(() => {
@@ -44,9 +37,38 @@ export default function Auth() {
     const password = formData.get('password') as string;
 
     try {
-      // Validate email format
-      emailSchema.parse(email);
+      // Validate email format first (client-side)
+      emailValidationSchema.parse(email);
       passwordSchema.parse(password);
+
+      // Verify email exists with real-time API check
+      toast({
+        title: t('Duke verifikuar...', 'Verifying...'),
+        description: t('Duke kontrolluar adresën e emailit...', 'Checking email address...'),
+      });
+
+      const emailVerification = await verifyEmail(email.trim().toLowerCase());
+
+      if (!emailVerification.valid) {
+        const errorMsg = emailVerification.error || 
+          'This email address does not exist or cannot receive emails';
+        
+        toast({
+          variant: 'destructive',
+          title: t('Email i pavlefshëm', 'Invalid Email'),
+          description: errorMsg,
+        });
+        setLoading(false);
+        return;
+      }
+
+      // Show suggestion if autocorrect is available
+      if (emailVerification.suggestion) {
+        toast({
+          title: t('Sugjerim', 'Suggestion'),
+          description: emailVerification.message || `Did you mean ${emailVerification.suggestion}?`,
+        });
+      }
 
       // Check if rate limited
       const { data: rateLimited, error: rateLimitError } = await supabase
