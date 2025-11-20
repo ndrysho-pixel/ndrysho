@@ -2,25 +2,54 @@ import { useQuery } from '@tanstack/react-query';
 import { supabase } from '@/integrations/supabase/client';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Skeleton } from '@/components/ui/skeleton';
+import { Badge } from '@/components/ui/badge';
 import { LineChart, Line, BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer } from 'recharts';
-import { Users, Eye, TrendingUp } from 'lucide-react';
+import { Users, Eye, TrendingUp, Monitor, Smartphone, Tablet } from 'lucide-react';
 import { format, subDays, startOfDay } from 'date-fns';
+import { parseUserAgent } from '@/utils/deviceParser';
+import { useEffect } from 'react';
 
 export default function VisitorAnalytics() {
-  // Active visitors count
-  const { data: activeVisitors, isLoading: loadingActive } = useQuery({
-    queryKey: ['active-visitors'],
+  // Fetch active visitors with details (last 5 minutes)
+  const { data: activeVisitorsData, isLoading: loadingActive, refetch: refetchVisitors } = useQuery({
+    queryKey: ['active-visitors-details'],
     queryFn: async () => {
+      const fiveMinutesAgo = new Date(Date.now() - 5 * 60 * 1000).toISOString();
       const { data, error } = await supabase
         .from('active_visitors')
         .select('*')
-        .gte('last_seen', new Date(Date.now() - 5 * 60 * 1000).toISOString());
+        .gte('last_seen', fiveMinutesAgo)
+        .order('last_seen', { ascending: false });
       
       if (error) throw error;
-      return data?.length || 0;
+      return data || [];
     },
-    refetchInterval: 30000, // Refetch every 30 seconds
+    refetchInterval: 5000, // Refetch every 5 seconds for real-time updates
   });
+
+  // Set up real-time subscription for visitor updates
+  useEffect(() => {
+    const channel = supabase
+      .channel('active-visitors-changes')
+      .on(
+        'postgres_changes',
+        {
+          event: '*',
+          schema: 'public',
+          table: 'active_visitors'
+        },
+        () => {
+          refetchVisitors();
+        }
+      )
+      .subscribe();
+
+    return () => {
+      supabase.removeChannel(channel);
+    };
+  }, [refetchVisitors]);
+
+  const activeVisitors = activeVisitorsData?.length || 0;
 
   // Visitor trends over last 7 days
   const { data: visitorTrends, isLoading: loadingTrends } = useQuery({
@@ -217,6 +246,88 @@ export default function VisitorAnalytics() {
                 </div>
               ))}
             </div>
+          )}
+        </CardContent>
+      </Card>
+
+      {/* Real-time Active Visitors */}
+      <Card className="col-span-1 md:col-span-2">
+        <CardHeader>
+          <CardTitle className="flex items-center gap-2">
+            <Users className="h-5 w-5" />
+            Live Active Visitors ({activeVisitors})
+          </CardTitle>
+          <CardDescription>Real-time visitor tracking with device and location information</CardDescription>
+        </CardHeader>
+        <CardContent>
+          {loadingActive ? (
+            <div className="space-y-4">
+              <Skeleton className="h-20 w-full" />
+              <Skeleton className="h-20 w-full" />
+            </div>
+          ) : activeVisitorsData && activeVisitorsData.length > 0 ? (
+            <div className="space-y-3 max-h-96 overflow-y-auto">
+              {activeVisitorsData.map((visitor) => {
+                const deviceInfo = parseUserAgent(visitor.user_agent || '');
+                const getDeviceIcon = () => {
+                  if (deviceInfo.deviceType === 'mobile') return <Smartphone className="h-4 w-4" />;
+                  if (deviceInfo.deviceType === 'tablet') return <Tablet className="h-4 w-4" />;
+                  return <Monitor className="h-4 w-4" />;
+                };
+
+                return (
+                  <div 
+                    key={visitor.id}
+                    className="p-4 border rounded-lg hover:bg-muted/50 transition-colors"
+                  >
+                    <div className="flex items-start justify-between gap-4">
+                      <div className="flex-1 space-y-2">
+                        <div className="flex items-center gap-2 flex-wrap">
+                          <Badge variant="outline" className="flex items-center gap-1">
+                            {getDeviceIcon()}
+                            {deviceInfo.device}
+                          </Badge>
+                          <Badge variant="secondary">
+                            {deviceInfo.browser} {deviceInfo.browserVersion}
+                          </Badge>
+                          <Badge variant="secondary">
+                            {deviceInfo.os}
+                          </Badge>
+                          {visitor.ip_address && (
+                            <Badge variant="outline">
+                              IP: {visitor.ip_address}
+                            </Badge>
+                          )}
+                        </div>
+                        
+                        <div className="text-sm space-y-1">
+                          <p className="font-medium text-foreground">
+                            Current Page: <span className="text-primary">{visitor.page_path}</span>
+                          </p>
+                          {visitor.referrer && (
+                            <p className="text-muted-foreground text-xs">
+                              Referred from: {new URL(visitor.referrer).hostname}
+                            </p>
+                          )}
+                          <p className="text-xs text-muted-foreground">
+                            Last active: {format(new Date(visitor.last_seen), 'HH:mm:ss')}
+                          </p>
+                        </div>
+                      </div>
+                      
+                      <div className="flex items-center gap-2">
+                        <div className="h-2 w-2 bg-green-500 rounded-full animate-pulse" />
+                        <span className="text-xs text-muted-foreground">Live</span>
+                      </div>
+                    </div>
+                  </div>
+                );
+              })}
+            </div>
+          ) : (
+            <p className="text-center text-muted-foreground py-8">
+              No active visitors at the moment
+            </p>
           )}
         </CardContent>
       </Card>

@@ -1,4 +1,4 @@
-import { useEffect, useRef } from 'react';
+import { useEffect, useRef, useState } from 'react';
 import { supabase } from '@/integrations/supabase/client';
 import { useLocation } from 'react-router-dom';
 
@@ -18,10 +18,27 @@ const getOrCreateSessionId = () => {
   return sessionId;
 };
 
+const getVisitorIP = async (): Promise<string | null> => {
+  try {
+    const { data, error } = await supabase.functions.invoke('get-visitor-ip');
+    if (error) throw error;
+    return data?.ip || null;
+  } catch (error) {
+    console.error('Error getting IP:', error);
+    return null;
+  }
+};
+
 export const useVisitorTracking = () => {
   const location = useLocation();
   const heartbeatRef = useRef<NodeJS.Timeout | null>(null);
   const sessionIdRef = useRef<string>(getOrCreateSessionId());
+  const [ipAddress, setIpAddress] = useState<string | null>(null);
+
+  // Get IP address once on mount
+  useEffect(() => {
+    getVisitorIP().then(setIpAddress);
+  }, []);
 
   useEffect(() => {
     const sessionId = sessionIdRef.current;
@@ -40,6 +57,7 @@ export const useVisitorTracking = () => {
             page_path: pagePath,
             user_agent: userAgent,
             referrer: referrer,
+            ip_address: ipAddress,
             last_seen: new Date().toISOString(),
           });
 
@@ -85,7 +103,7 @@ export const useVisitorTracking = () => {
         clearInterval(heartbeatRef.current);
       }
     };
-  }, [location.pathname]);
+  }, [location.pathname, ipAddress]);
 
   return null;
 };
